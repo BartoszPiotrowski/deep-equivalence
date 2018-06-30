@@ -1,36 +1,54 @@
+import numpy as np
 
 class Dataset:
-    def __init__(self, sequences, sequence_length, sequence_dim, shuffle_batches=True):
-        self._sequences = np.zeros([sequences, sequence_length, sequence_dim], np.int32)
-        self._labels = np.zeros([sequences, sequence_length], np.bool)
-
-        for i in range(sequences):
-            self._sequences[i, :, 0] = np.random.random_integers(0, max(1, sequence_dim - 1), size=[sequence_length])
-            self._labels[i] = np.bitwise_and(np.cumsum(self._sequences[i, :, 0]), 1)
-            if sequence_dim > 1:
-                self._sequences[i] = np.eye(sequence_dim)[self._sequences[i, :, 0]]
-
-        self._shuffle_batches = shuffle_batches
-        self._permutation = np.random.permutation(len(self._sequences)) if self._shuffle_batches else np.arange(len(self._sequences))
-
-    @property
-    def sequences(self):
-        return self._sequences
-
-    @property
-    def labels(self):
-        return self._labels
+    def __init__(
+            self,
+            formulae_filename, # TODO remove commas?
+            vocab_filename,
+            shuffle_batches=True):
+        self.formulae_1 = []
+        self.formulae_2 = []
+        self.labels = []
+        with open(formulae_filename, 'r') as formulae:
+            for line in formulae:
+                f1, f2, l = line.strip('\n').split(' ')
+                self.formulae_1.append(f1)
+                self.formulae_2.append(f2)
+                self.labels.append(l)
+        with open(vocab_filename, 'r') as vocab:
+            self.vocab = vocab.read().splitlines()
+        self.vocab_map = {self.vocab[i]: i + 1 for i in range(len(self.vocab))}
+        self.seqs_1 = [[self.vocab_map[t] for t in f] for f in self.formulae_1]
+        self.seqs_2 = [[self.vocab_map[t] for t in f] for f in self.formulae_2]
+        self.formulae_lengths_1 = [len(f) for f in self.formulae_1]
+        self.formulae_lengths_2 = [len(f) for f in self.formulae_2]
+        self.shuffle_batches = shuffle_batches
+        self._permutation = np.random.permutation(len(self.sequences)) \
+                if self.shuffle_batches else np.arange(len(self.sequences))
 
     def all_data(self):
-        return self._sequences, self._labels
+        return self.sequences, self.labels
+
+    def padding(sequences, length, pad=0):
+        padded_sequences = []
+        for s in sequences:
+            assert len(s) <= length
+            padded_sequences.append(s + [pad] * (length - len(s)))
+        return padded_sequences
 
     def next_batch(self, batch_size):
         batch_size = min(batch_size, len(self._permutation))
-        batch_perm, self._permutation = self._permutation[:batch_size], self._permutation[batch_size:]
-        return self._sequences[batch_perm], self._labels[batch_perm]
+        batch_perm, self._permutation = \
+            self._permutation[:batch_size], self._permutation[batch_size:]
+        max_length = max(self.formulae_lengths_1[batch_perm] +
+                         self.formulae_lengths_2[batch_perm])
+        sequences = padding(self.sequences[batch_perm], max_length)
+        labels = self.labels[batch_perm]
+        return sequences, labels
 
     def epoch_finished(self):
         if len(self._permutation) == 0:
-            self._permutation = np.random.permutation(len(self._sequences)) if self._shuffle_batches else np.arange(len(self._sequences))
+            self._permutation = np.random.permutation(len(self.sequences)) \
+                    if self.shuffle_batches else np.arange(len(self.sequences))
             return True
         return False
