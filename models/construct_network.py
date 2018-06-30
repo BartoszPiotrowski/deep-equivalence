@@ -28,7 +28,7 @@ class Network:
                 tf.int32, [None, None], name="tokens_ids_2")
             self.labels = tf.placeholder(tf.int32, [None], name="labels")
 
-            # RNN Cell
+            # RNN Cell TODO: move such things to parser
             if args.rnn_cell == "LSTM":
                 rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
             elif args.rnn_cell == "GRU":
@@ -111,12 +111,15 @@ class Network:
 
     def train_epoch(self, train, batch_size):
         while not train.epoch_finished():
-            formulae_lens, tokens_ids, labels = train.next_batch(batch_size)
+            formulae_lens_1, tokens_ids_1, \
+            formulae_lens_2, tokens_ids_2, \
+                    labels = train.next_batch(batch_size)
             self.session.run(self.reset_metrics)
-            self.session.run([self.training,
-                              self.summaries["train"]],
-                             {self.formulae_lens: formulae_lens,
-                              self.tokens_ids: tokens_ids,
+            self.session.run([self.training, self.summaries["train"]],
+                             {self.formulae_lens_1: formulae_lens_1,
+                              self.tokens_ids_1: tokens_ids_1,
+                              self.formulae_lens_2: formulae_lens_2,
+                              self.tokens_ids_2: tokens_ids_2,
                               self.labels: labels})
 
     def evaluate(self, dataset_name, dataset, batch_size):
@@ -124,8 +127,10 @@ class Network:
         while not dataset.epoch_finished():
             formulae_lens, tokens_ids = dataset.next_batch(batch_size)
             self.session.run([self.update_accuracy, self.update_loss],
-                             {self.formulae_lens: formulae_lens,
-                              self.tokens_ids: tokens_ids,
+                             {self.formulae_lens_1: formulae_lens_1,
+                              self.tokens_ids_1: tokens_ids_1,
+                              self.formulae_lens_2: formulae_lens_2,
+                              self.tokens_ids_2: tokens_ids_2,
                               self.labels: labels})
         return self.session.run(
             [self.current_accuracy, self.summaries[dataset_name]])[0]
