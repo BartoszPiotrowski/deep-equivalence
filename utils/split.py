@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+# usage: python3 utils/split.py data/from-Chad/quadsforaim.p --train 0.5 --valid 0.2 --test 0.3
 import argparse, random
 
 parser = argparse.ArgumentParser(
@@ -37,10 +39,10 @@ assert not set(examplesTrain) & set(examplesValid)
 assert not set(examplesValid) & set(examplesTest)
 assert not set(examplesTest) & set(examplesTrain)
 with open(args.filename + '.train', 'w') as f:
-    f.write('\n'.join(examplesTrain))
+    f.write('\n'.join(examplesTrain) + '\n')
 with open(args.filename + '.valid', 'w') as f:
-    f.write('\n'.join(examplesValid))
+    f.write('\n'.join(examplesValid) + '\n')
 with open(args.filename + '.test', 'w') as f:
-    f.write('\n'.join(examplesTest))
+    f.write('\n'.join(examplesTest) + '\n')
 
 
