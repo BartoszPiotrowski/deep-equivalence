@@ -21,8 +21,8 @@ class Dataset:
         self.vocab_map = {self.vocab[i]: i + 1 for i in range(len(self.vocab))}
         self.seqs_1 = [[self.vocab_map[t] for t in f] for f in self.formulae_1]
         self.seqs_2 = [[self.vocab_map[t] for t in f] for f in self.formulae_2]
-        self.formulae_lengths_1 = [len(f) for f in self.formulae_1]
-        self.formulae_lengths_2 = [len(f) for f in self.formulae_2]
+        self.formulae_lens_1 = [len(f) for f in self.formulae_1]
+        self.formulae_lens_2 = [len(f) for f in self.formulae_2]
         self.shuffle_batches = shuffle_batches
         self._permutation = np.random.permutation(len(self)) \
                 if self.shuffle_batches else np.arange(len(self))
@@ -30,7 +30,7 @@ class Dataset:
     def __len__(self):
         return len(self.formulae_1)
 
-    def padding(sequences, length, pad=0):
+    def pad(self, sequences, length, pad=0):
         padded_sequences = []
         for s in sequences:
             assert len(s) <= length
@@ -41,11 +41,12 @@ class Dataset:
         batch_size = min(batch_size, len(self._permutation))
         batch_perm, self._permutation = \
             self._permutation[:batch_size], self._permutation[batch_size:]
-        max_length = max(self.formulae_lengths_1[batch_perm] +
-                         self.formulae_lengths_2[batch_perm])
-        seqs_1 = np.array(padding(self.seqs_1[batch_perm], max_length))
-        seqs_2 = np.array(padding(self.seqs_2[batch_perm], max_length))
-        labels = self.labels[batch_perm]
+        l1 = [self.formulae_lens_1[i] for i in batch_perm]
+        l2 = [self.formulae_lens_2[i] for i in batch_perm]
+        max_len = max(l1 + l2)
+        seqs_1 = np.array(self.pad([self.seqs_1[i] for i in batch_perm], max_len))
+        seqs_2 = np.array(self.pad([self.seqs_2[i] for i in batch_perm], max_len))
+        labels = [self.labels[i] for i in batch_perm]
         return seqs_1, seqs_2, labels
 
     def epoch_finished(self):
