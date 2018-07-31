@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
 import numpy as np
 import tensorflow as tf
-
+import sys
+sys.path.append('')
+from utils import dataset as data
+# TODO control all shapes
+# TODO check how data set is balanced
+# TODO check which formulae are problematic
+# TODO grid search
 
 class Network:
     def __init__(self, threads, seed=42):
@@ -28,45 +34,59 @@ class Network:
                 tf.int32, [None, None], name="tokens_ids_2")
             self.labels = tf.placeholder(tf.int32, [None], name="labels")
 
-            # RNN Cell TODO: move such things to parser
-            if args.rnn_cell == "LSTM":
-                rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
-            elif args.rnn_cell == "GRU":
-                rnn_cell = tf.nn.rnn_cell.GRUCell
-            else:
-                raise ValueError("Unknown rnn_cell {}".format(args.rnn_cell))
-
             # Token embeddings
             token_embeddings = tf.get_variable(
-                "token_embeddings", shape=[num_tokens, args.embed_dim],
+                "token_embeddings",
+                shape=[num_tokens, args.embed_dim],
                 dtype=tf.float32)
+            print('token_embeddings shape :', token_embeddings.get_shape())
             inputs_1 = tf.nn.embedding_lookup(token_embeddings, self.tokens_ids_1)
             inputs_2 = tf.nn.embedding_lookup(token_embeddings, self.tokens_ids_2)
+            print('inputs_1 shape :', inputs_1.get_shape())
+            print('inputs_2 shape :', inputs_2.get_shape())
 
             # Computation
-            _, (state_fwd_1, state_bwd_1) = \
-                    tf.nn.bidirectional_dynamic_rnn(
-                        rnn_cell(args.rnn_cell_dim),
-                        rnn_cell(args.rnn_cell_dim),
-                        inputs_1,
-                        sequence_length=self.formulae_lens_1,
-                        dtype=tf.float32)
-            _, (state_fwd_2, state_bwd_2) = \
-                    tf.nn.bidirectional_dynamic_rnn(
-                        rnn_cell(args.rnn_cell_dim),
-                        rnn_cell(args.rnn_cell_dim),
-                        inputs_2,
-                        sequence_length=self.formulae_lens_2,
-                        dtype=tf.float32)
-            state_1 = tf.concat([state_fwd_1, state_bwd_1]) # TODO axis OK?
-            state_2 = tf.concat([state_fwd_2, state_bwd_2]) # TODO axis OK?
-            state = tf.concat([state_1, state_2], axis=2) # TODO axis OK?
-            # TODO parameter in place of 64
-            layer_1 = tf.layers.dense(state, 64, activation=tf.nn.relu)
+            # rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
+            rnn_cell = tf.nn.rnn_cell.GRUCell
+
+            with tf.variable_scope('bi_rnn_1'):
+                _, (state_fwd_1, state_bwd_1) = \
+                        tf.nn.bidirectional_dynamic_rnn(
+                            rnn_cell(args.rnn_cell_dim),
+                            rnn_cell(args.rnn_cell_dim),
+                            inputs_1,
+                            sequence_length=self.formulae_lens_1,
+                            dtype=tf.float32)
+            with tf.variable_scope('bi_rnn_2'):
+                _, (state_fwd_2, state_bwd_2) = \
+                        tf.nn.bidirectional_dynamic_rnn(
+                            rnn_cell(args.rnn_cell_dim),
+                            rnn_cell(args.rnn_cell_dim),
+                            inputs_2,
+                            sequence_length=self.formulae_lens_2,
+                            dtype=tf.float32)
+            # TODO are axis OK?
+            #print('state_fwd_1 shape :', state_fwd_1.get_shape())
+            print('state_fwd_1 :', state_fwd_1)
+            state_1 = tf.concat([state_fwd_1, state_bwd_1], axis=-1)
+            state_2 = tf.concat([state_fwd_2, state_bwd_2], axis=-1)
+            print('state_1 shape :', state_1.get_shape())
+            print('state_2 shape :', state_2.get_shape())
+            state = tf.concat([state_1, state_2], axis=-1)
+            print('state shape :', state.get_shape())
+            layer_1 = tf.layers.dense(state,
+                                      args.dense_layer_dim,
+                                      activation=tf.nn.relu)
             logits = tf.layers.dense(layer_1, self.LABELS, name='logits')
             self.predictions = tf.argmax(logits, axis=1, name='predictions')
+            #predictions_shape = tf.shape(self.predictions)
+            print('self.predictions shape: ', self.predictions.get_shape())
 
             # Training
+            #labels_shape = tf.shape(self.labels)
+            print('self.labels shape: ', self.labels.get_shape())
+            #logits_shape = tf.shape(logits)
+            print('logits shape: ', logits.get_shape())
             loss = tf.losses.sparse_softmax_cross_entropy(
                 self.labels, logits)
             global_step = tf.train.create_global_step()
@@ -76,7 +96,7 @@ class Network:
             # Summaries
             self.current_accuracy, self.update_accuracy = tf.metrics.accuracy(
                 self.labels, self.predictions)
-            self.current_loss, self.update_loss = tf.metrics.mean(loss))
+            self.current_loss, self.update_loss = tf.metrics.mean(loss)
             self.reset_metrics = tf.variables_initializer(
                 tf.get_collection(tf.GraphKeys.METRIC_VARIABLES))
 
@@ -111,9 +131,9 @@ class Network:
 
     def train_epoch(self, train, batch_size):
         while not train.epoch_finished():
-            formulae_lens_1, tokens_ids_1, \
-            formulae_lens_2, tokens_ids_2, \
-                    labels = train.next_batch(batch_size)
+            tokens_ids_1, formulae_lens_1, \
+            tokens_ids_2, formulae_lens_2, \
+                labels = train.next_batch(batch_size)
             self.session.run(self.reset_metrics)
             self.session.run([self.training, self.summaries["train"]],
                              {self.formulae_lens_1: formulae_lens_1,
@@ -125,7 +145,9 @@ class Network:
     def evaluate(self, dataset_name, dataset, batch_size):
         self.session.run(self.reset_metrics)
         while not dataset.epoch_finished():
-            formulae_lens, tokens_ids = dataset.next_batch(batch_size)
+            tokens_ids_1, formulae_lens_1, \
+            tokens_ids_2, formulae_lens_2, \
+                labels = dataset.next_batch(batch_size)
             self.session.run([self.update_accuracy, self.update_loss],
                              {self.formulae_lens_1: formulae_lens_1,
                               self.tokens_ids_1: tokens_ids_1,
@@ -163,8 +185,13 @@ if __name__ == "__main__":
         type=str,
         help="RNN cell type.")
     parser.add_argument(
+        "--dense_layer_dim",
+        default=32,
+        type=int,
+        help="number of units in dense layer.")
+    parser.add_argument(
         "--rnn_cell_dim",
-        default=64,
+        default=32,
         type=int,
         help="RNN cell dimension.")
     parser.add_argument(
@@ -172,8 +199,11 @@ if __name__ == "__main__":
         default=1,
         type=int,
         help="Maximum number of threads to use.")
-    parser.add_argument("--embed_dim", default=128, type=int,
-                        help="Token embedding dimension.")
+    parser.add_argument(
+        "--embed_dim",
+        default=32,
+        type=int,
+        help="Token embedding dimension.")
     args = parser.parse_args()
 
     # Create logdir name
@@ -193,12 +223,15 @@ if __name__ == "__main__":
         os.mkdir("logs")  # TF 1.6 will do this by itself
 
     # Load the data
-    train = tptp_dataset.Dataset("data/split.train", max_sentences=5000)
-    dev = tptp_dataset.Dataset("data/split.valid", shuffle_batches=False)
+    train = data.Dataset('data/split/equiv.train', 'data/vocab.txt')
+    dev = data.Dataset('data/split/equiv.valid', 'data/vocab.txt',
+                       shuffle_batches=False)
 
     # Construct the network
     network = Network(threads=args.threads)
-    network.construct(args, train.num_tokens)
+    # TODO this '+ 1' shouldn't be there
+    # network.construct(args, train.num_tokens)
+    network.construct(args, train.num_tokens + 1)
 
     # Train
     for i in range(args.epochs):

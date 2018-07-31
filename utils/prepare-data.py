@@ -18,3 +18,4 @@ for q in quads:
 
 for e in examples:
     print(' '.join(e))
+
