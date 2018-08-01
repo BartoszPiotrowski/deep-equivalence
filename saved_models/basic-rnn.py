@@ -214,9 +214,6 @@ class NetworkPredict:
         self.saver.restore(self.session, path)
 
     def predict(self, dataset_name, dataset):
-        tokens_ids_1, formulae_lens_1, \
-        tokens_ids_2, formulae_lens_2, \
-            = dataset.test()
         return self.session.run(self.predictions,
                          {self.formulae_lens_1: formulae_lens_1,
                           self.tokens_ids_1: tokens_ids_1,
@@ -249,11 +246,6 @@ if __name__ == "__main__":
         default='data/split/equiv.valid',
         type=str,
         help="Path to a validation (dev) set.")
-    parser.add_argument(
-        "--test_set",
-        default='data/split/equiv.test',
-        type=str,
-        help="Path to a testing set.")
     parser.add_argument(
         "--batch_size",
         default=16,
@@ -320,15 +312,10 @@ if __name__ == "__main__":
     print("Training finished.")
 
     # Save
-    model_path = 'saved_models/aaa'
+    model_path = 'saved_models/model-1-test'
     model_path = network.save(model_path)
     print(model_path)
 
     # Predict on test set
     network = NetworkPredict()
     network.load(model_path)
-    test = data.Dataset(args.test_set, args.vocab, test=True)
-    p = network.predict('test', test)
-    with open('preds_file', 'w') as preds_file:
-        for i in p:
-            print(i, file=preds_file)
