@@ -153,11 +153,11 @@ class Network:
     def save(self, path):
         return self.saver.save(self.session, path)
 
-    def train_epoch(self, train, batch_size):
-        while not train.epoch_finished():
+    def train_epoch(self, train_set, batch_size):
+        while not train_set.epoch_finished():
             tokens_ids_1, formulae_lens_1, \
             tokens_ids_2, formulae_lens_2, \
-                labels = train.next_batch(batch_size)
+                labels = train_set.next_batch(batch_size)
             self.session.run(self.reset_metrics)
             self.session.run([self.training, self.summaries["train"]],
                              {self.formulae_lens_1: formulae_lens_1,
@@ -165,6 +165,18 @@ class Network:
                               self.formulae_lens_2: formulae_lens_2,
                               self.tokens_ids_2: tokens_ids_2,
                               self.labels: labels})
+
+    def train_batch(self, batch):
+        tokens_ids_1, formulae_lens_1, \
+        tokens_ids_2, formulae_lens_2, \
+                            labels = batch
+        self.session.run(self.reset_metrics)
+        self.session.run([self.training, self.summaries["train"]],
+                         {self.formulae_lens_1: formulae_lens_1,
+                          self.tokens_ids_1: tokens_ids_1,
+                          self.formulae_lens_2: formulae_lens_2,
+                          self.tokens_ids_2: tokens_ids_2,
+                          self.labels: labels})
 
     def evaluate(self, dataset_name, dataset, batch_size):
         self.session.run(self.reset_metrics)
@@ -288,7 +300,7 @@ if __name__ == "__main__":
         help="Number of units in each dense layer.")
     parser.add_argument(
         "--threads",
-        default=2,
+        default=1,
         type=int,
         help="Maximum number of threads to use.")
     parser.add_argument(
@@ -321,30 +333,50 @@ if __name__ == "__main__":
     print("The logdir is: {}".format(args.logdir))
 
     # Load the data
-    train = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
-    dev = data.Dataset(args.valid_set, args.vocab, shuffle_batches=False)
+    train_set = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
+    dev_set = data.Dataset(args.valid_set, args.vocab, shuffle_batches=False)
 
     # Construct the network
     network = Network(threads=args.threads)
-    network.construct(args, train.num_tokens)
+    network.construct(args, train_set.num_tokens)
 
 # TODO vacabulary map
 # TODO grid search
 
     # Train
+    #print("Training started.")
+    #for i in range(args.epochs):
+    #    network.train_epoch(train_set, args.batch_size)
+    #    accuracy = network.evaluate('dev', dev_set, args.batch_size)
+    #    print("Accuracy on dev set after epoch {}: {:.2f}".format(
+    #                                        i + 1, 100 * accuracy))
+    #    # Saving embeddings
+    #    embeddings = network.embeddings()
+    #    file_name = args.logdir + '/embeddings_from_epoch_' + str(i) + '.csv'
+    #    embeddings_to_write = '\n'.join(
+    #        [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
+    #    with open(file_name, 'w') as f:
+    #        f.write(embeddings_to_write + '\n')
+    #print("Training finished.")
+
+    # Train, batches
     print("Training started.")
     for i in range(args.epochs):
-        network.train_epoch(train, args.batch_size)
-        accuracy = network.evaluate('dev', dev, args.batch_size)
+        while not train_set.epoch_finished():
+            batch = train_set.next_batch(args.batch_size)
+            network.train_batch(batch)
+
+            # Saving embeddings
+            embeddings = network.embeddings()
+            time = datetime.datetime.now().strftime("%H%M%S")
+            file_name = args.logdir + '/embeddings_' + time + '.csv'
+            embeddings_to_write = '\n'.join(
+                [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
+            with open(file_name, 'w') as f:
+                f.write(embeddings_to_write + '\n')
+        accuracy = network.evaluate('dev', dev_set, args.batch_size)
         print("Accuracy on dev set after epoch {}: {:.2f}".format(
                                             i + 1, 100 * accuracy))
-        # Saving embeddings
-        embeddings = network.embeddings()
-        file_name = args.logdir + '/embeddings_from_epoch_' + str(i) + '.csv'
-        embeddings_to_write = '\n'.join(
-            [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
-        with open(file_name, 'w') as f:
-            f.write(embeddings_to_write + '\n')
     print("Training finished.")
 
     # Save model

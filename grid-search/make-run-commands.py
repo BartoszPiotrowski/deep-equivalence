@@ -17,6 +17,10 @@ if __name__ == "__main__":
                 param_2 val_1 val_2 \
                 ... \
         .")
+    parser.add_argument(
+        "command",
+        type=str,
+        help="Command for which we produce a grid of arguments.")
     args = parser.parse_args()
     params = []
     values = []
@@ -27,6 +31,7 @@ if __name__ == "__main__":
             values.append(p[1:])
     product = itertools.product(*values)
     for v in product:
-        to_run = COMMAND + ' ' + ' '.join([' '.join(p) for p in zip(params, v)])
-        print(to_run)
+        print(
+            args.command + ' ' + ' '.join([' '.join(p) for p in zip(params, v)])
+        )
 

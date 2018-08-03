@@ -2,7 +2,7 @@ library(tsne)
 library(ggplot2)
 
 VOCAB_FILE<-'data/vocab.txt'
-EMBED_FILE_PATTERN<-'*embeddings_from*.csv'
+EMBED_FILE_PATTERN<-'*embeddings*.csv'
 PADDING_SYMBOL<-'<pad>'
 
 args <- commandArgs(trailingOnly=TRUE)
