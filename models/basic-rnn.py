@@ -6,10 +6,8 @@ sys.path.append('')
 from utils import dataset as data
 # ~DONE control all shapes
 # DONE check how data set is balanced -> 42% are positives, good enough
-# TODO put all parameters as args to parse
 # TODO commas v no commas
 # TODO grid search
-# TODO saving the network
 # TODO check which formulae are problematic
 # TODO solve some examples by hand
 
@@ -39,15 +37,16 @@ class Network:
             self.labels = tf.placeholder(tf.int32, [None], name="labels")
 
             # Token embeddings
-            token_embeddings = tf.get_variable(
+            self.token_embeddings = tf.get_variable(
                 "token_embeddings",
                 shape=[num_tokens, args.embed_dim],
                 dtype=tf.float32)
-            print('token_embeddings shape :', token_embeddings.get_shape())
-            inputs_1 = tf.nn.embedding_lookup(token_embeddings, self.tokens_ids_1)
-            inputs_2 = tf.nn.embedding_lookup(token_embeddings, self.tokens_ids_2)
-            print('inputs_1 shape :', inputs_1.get_shape())
-            print('inputs_2 shape :', inputs_2.get_shape())
+            inputs_1 = tf.nn.embedding_lookup(self.token_embeddings,
+                                              self.tokens_ids_1)
+            inputs_2 = tf.nn.embedding_lookup(self.token_embeddings,
+                                              self.tokens_ids_2)
+            #print('inputs_1 shape :', inputs_1.get_shape())
+            #print('inputs_2 shape :', inputs_2.get_shape())
 
             # Computation
             # rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
@@ -71,13 +70,13 @@ class Network:
                             dtype=tf.float32)
 
             #print('state_fwd_1 shape :', state_fwd_1.get_shape())
-            print('state_fwd_1 :', state_fwd_1)
+            #print('state_fwd_1 :', state_fwd_1)
             state_1 = tf.concat([state_fwd_1, state_bwd_1], axis=-1)
             state_2 = tf.concat([state_fwd_2, state_bwd_2], axis=-1)
-            print('state_1 shape :', state_1.get_shape())
-            print('state_2 shape :', state_2.get_shape())
+            #print('state_1 shape :', state_1.get_shape())
+            #print('state_2 shape :', state_2.get_shape())
             state = tf.concat([state_1, state_2], axis=-1)
-            print('state shape :', state.get_shape())
+            #print('state shape :', state.get_shape())
             layers = [state]
             for _ in range(args.num_dense_layers):
                 layers.append(
@@ -88,13 +87,13 @@ class Network:
             logits = tf.layers.dense(layers[-1], self.LABELS, name='logits')
             self.predictions = tf.argmax(logits, axis=1, name='predictions')
             #predictions_shape = tf.shape(self.predictions)
-            print('self.predictions shape: ', self.predictions.get_shape())
+            #print('self.predictions shape: ', self.predictions.get_shape())
 
             # Training
             #labels_shape = tf.shape(self.labels)
-            print('self.labels shape: ', self.labels.get_shape())
+            #print('self.labels shape: ', self.labels.get_shape())
             #logits_shape = tf.shape(logits)
-            print('logits shape: ', logits.get_shape())
+            #print('logits shape: ', logits.get_shape())
             loss = tf.losses.sparse_softmax_cross_entropy(
                 self.labels, logits)
             global_step = tf.train.create_global_step()
@@ -182,6 +181,9 @@ class Network:
         return self.session.run(
             [self.current_accuracy, self.summaries[dataset_name]])[0]
 
+    def embeddings(self):
+        return self.session.run(self.token_embeddings)
+
 class NetworkPredict:
     def __init__(self, threads=1, seed=42):
         # Create an empty graph and a session
@@ -256,22 +258,22 @@ if __name__ == "__main__":
         help="Path to a testing set.")
     parser.add_argument(
         "--batch_size",
-        default=16,
+        default=8,
         type=int,
         help="Batch size.")
     parser.add_argument(
         "--epochs",
-        default=16,
+        default=8,
         type=int,
         help="Number of epochs.")
     parser.add_argument(
         "--embed_dim",
-        default=16,
+        default=8,
         type=int,
         help="Token embedding dimension.")
     parser.add_argument(
         "--rnn_cell_dim",
-        default=16,
+        default=8,
         type=int,
         help="RNN cell dimension.")
     parser.add_argument(
@@ -281,7 +283,7 @@ if __name__ == "__main__":
         help="Number of dense layers.")
     parser.add_argument(
         "--dense_layer_units",
-        default=16,
+        default=8,
         type=int,
         help="Number of units in each dense layer.")
     parser.add_argument(
@@ -289,20 +291,34 @@ if __name__ == "__main__":
         default=2,
         type=int,
         help="Maximum number of threads to use.")
+    parser.add_argument(
+        "--logdir",
+        default='',
+        type=str,
+        help="Logdir.")
     args = parser.parse_args()
 
-    # Create dir for logs
-    if not os.path.exists("logs"):
-        os.mkdir("logs")
+    if not args.logdir:
+        # Create dir for logs
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
 
-    # Create logdir name
-    args.logdir = "logs/{}-{}-{}".format(
-        os.path.basename(__file__),
-        datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S"),
-        ",".join(
-            ("{}={}".format(
-                re.sub("(.)[^_]*_?", r"\1", key), value) \
-                    for key, value in sorted(vars(args).items()))))
+        # Create logdir name
+        args.logdir = "logs/{}--{}--{}".format(
+            os.path.basename(__file__),
+            datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"),
+            ",".join(
+                ("{}={}".format(
+                    re.sub("(.)[^_]*_?", r"\1", key), value) \
+                        for key, value in sorted(vars(args).items()) \
+                            if not '/' in str(value) \
+                            and not 'threads' in key
+                            and not 'logdir' in key
+                )
+            )
+        )
+
+    print("The logdir is: {}".format(args.logdir))
 
     # Load the data
     train = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
@@ -312,17 +328,28 @@ if __name__ == "__main__":
     network = Network(threads=args.threads)
     network.construct(args, train.num_tokens)
 
+# TODO vacabulary map
+# TODO grid search
+
     # Train
+    print("Training started.")
     for i in range(args.epochs):
         network.train_epoch(train, args.batch_size)
-        accuracy = network.evaluate("dev", dev, args.batch_size)
-        print("Accuracy on dev set: {:.2f}".format(100 * accuracy))
+        accuracy = network.evaluate('dev', dev, args.batch_size)
+        print("Accuracy on dev set after epoch {}: {:.2f}".format(
+                                            i + 1, 100 * accuracy))
+        # Saving embeddings
+        embeddings = network.embeddings()
+        file_name = args.logdir + '/embeddings_from_epoch_' + str(i) + '.csv'
+        embeddings_to_write = '\n'.join(
+            [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
+        with open(file_name, 'w') as f:
+            f.write(embeddings_to_write + '\n')
     print("Training finished.")
 
-    # Save
-    model_path = 'saved_models/aaa'
-    model_path = network.save(model_path)
-    print(model_path)
+    # Save model
+    model_path = network.save(args.logdir + '/saved_model')
+    print('Model saved to: ', model_path)
 
     # Predict on test set
     network = NetworkPredict()

@@ -36,11 +36,11 @@ class Dataset:
     def __len__(self):
         return len(self.formulae_1)
 
-    def pad(self, sequences, length, pad=0):
+    def pad(self, sequences, length, pad_symbol=0):
         padded_sequences = []
         for s in sequences:
             assert len(s) <= length
-            padded_sequences.append(s + [pad] * (length - len(s)))
+            padded_sequences.append(s + [pad_symbol] * (length - len(s)))
         return padded_sequences
 
     def next_batch(self, batch_size):
