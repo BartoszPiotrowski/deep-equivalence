@@ -1,9 +1,8 @@
-library(tsne)
 library(ggplot2)
 
 VOCAB_FILE<-'data/vocab.txt'
 EMBED_FILE_PATTERN<-'*embeddings*.csv'
-PADDING_SYMBOL<-'<pad>'
+PADDING_SYMBOL<-''
 
 args <- commandArgs(trailingOnly=TRUE)
 path <- args[1]
@@ -13,14 +12,13 @@ embeds_files <- Sys.glob(paste(path, EMBED_FILE_PATTERN, sep='/'))
 
 for (embeds_file in embeds_files){
 	embeds <- read.csv(embeds_file, header=F)
-	projection <- data.frame(tsne(embeds, perplexity=2))
-	colnames(projection) <- c('v1', 'v2')
+	pca <- prcomp(embeds)
+	projection <- data.frame(predict(pca, embeds)[,c(1,2)])
 	projection['symbol'] <- symbols
-	# TODO fixed grid
-	ggplot(projection, aes(x=v1, y=v2, label=symbol)) +
+	ggplot(projection, aes(x=PC1, y=PC2, label=symbol)) +
 	       	geom_text(aes(label=symbol)) +
-		scale_x_continuous(limits = c(-1800, 1800)) +
-		scale_y_continuous(limits = c(-1800, 1800))
+		scale_x_continuous(limits = c(-3, 3)) +
+		scale_y_continuous(limits = c(-3, 3))
 
 	ggsave(sub('.csv', '.png', embeds_file))
 }
