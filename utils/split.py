@@ -12,7 +12,12 @@ args = parser.parse_args()
 assert args.train + args.valid + args.test == 1.
 examples = open(args.filename).read().split('\n')
 examples = [e for e in examples if e] # remove empty lines
+examples = [' '.join([str(i[0]), str(i[1]), str(i[2])]) if i[1] < i[2] else \
+            ' '.join([str(i[0]), str(i[2]), str(i[1])]) \
+                for i in [e.split(' ') for e in examples]] # order pairs
 examples = list(set(examples)) # remove duplicates
+with open(args.filename + '_no_duplicates', 'w') as f:
+    f.write('\n'.join(examples) + '\n')
 random.shuffle(examples)
 examplesPos = [e for e in examples if e.split(' ')[0] == '1']
 examplesNeg = [e for e in examples if e.split(' ')[0] == '0']
