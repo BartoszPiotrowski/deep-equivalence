@@ -1,8 +1,9 @@
 import argparse
 
 parser = argparse.ArgumentParser(
-    description="Take file with quadruples from Chad and produce file with lines"
-                "of the form: expr_1, expr_2, 1(expr_1 = expr_2).")
+    description="Takes a file with quadruples from Chad and produce file with"
+                "lines of the form: "
+                "1(expr_1 = expr_2), expr_1, expr_2.")
 parser.add_argument('filename', type=str, help="Path to file with quadruples.")
 args = parser.parse_args()
 

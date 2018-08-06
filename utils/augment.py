@@ -34,8 +34,7 @@ def reverse(example):
     e = example.split(' ')
     return ' '.join([e[0], e[2], e[1]])
 
-parser = argparse.ArgumentParser(
-    description="Split file with training examples into three balanced.")
+parser = argparse.ArgumentParser()
 parser.add_argument('filename', type=str,
                     help="Path to a file with data to augment.")
 parser.add_argument('--variables', type=str, default='XYZUW',
@@ -43,7 +42,9 @@ parser.add_argument('--variables', type=str, default='XYZUW',
 parser.add_argument('--reverse', type=bool, default=True,
                     help="Test set size.")
 args = parser.parse_args()
-examples = open(args.filename).read().splitlines()
+
+with open(args.filename, 'r') as f:
+    examples = f.read().splitlines()
 
 augmented_examples = []
 for e in examples:

@@ -10,7 +10,8 @@ parser.add_argument('--valid', type=float, help="Validation set size.")
 parser.add_argument('--test', type=float, help="Test set size.")
 args = parser.parse_args()
 assert args.train + args.valid + args.test == 1.
-examples = open(args.filename).read().splitlines()
+with open(args.filename, 'r') as f:
+    examples = f.read().splitlines()
 examples = [e for e in examples if e] # remove empty lines
 examples = [' '.join([i[0], i[1], i[2]]) if i[1] < i[2] else \
             ' '.join([i[0], i[2], i[1]]) \
