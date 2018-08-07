@@ -27,5 +27,5 @@ args = parser.parse_args()
 with open(args.filename, 'r') as f:
     examples = f.read().splitlines()
 
-for e in examples[:10]:
+for e in examples:
     print(rename(e, args.variables))

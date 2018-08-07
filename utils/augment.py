@@ -39,7 +39,7 @@ parser.add_argument('filename', type=str,
                     help="Path to a file with data to augment.")
 parser.add_argument('--variables', type=str, default='XYZUW',
                     help="List of variables available for substituting.")
-parser.add_argument('--reverse', type=bool, default=True,
+parser.add_argument('--reverse', action='store_true',
                     help="Test set size.")
 args = parser.parse_args()
 
