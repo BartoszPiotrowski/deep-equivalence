@@ -11,7 +11,9 @@ python3 utils/augment.py data/split/equiv.train --variables 'XYZUW' --reverse > 
    `data/split/equiv.test`:
 `
 python3 utils/rename.py data/split/equiv.valid --variables 'XYZUW' > \
-							data/split/equiv.valid
+						data/split/equiv_renamed.valid
+mv data/split/equiv_renamed.valid data/split/equiv.valid
 python3 utils/rename.py data/split/equiv.test --variables 'XYZUW' > \
-							data/split/equiv.test
+						data/split/equiv_renamed.test
+mv data/split/equiv_renamed.test data/split/equiv.test
 `
