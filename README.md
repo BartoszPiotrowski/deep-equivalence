@@ -12,6 +12,7 @@ to preprocess them to the form appropriate for experiments do the following:
 3. Move split data to its place: `mkdir data/split; mv data/equiv.* data/split`
 
 Optionally you can:
+
 4. Augment training examples by doing permutation:
 ```
 python3 utils/augment.py data/split/equiv.train --variables 'XYZUW' --reverse \
@@ -33,10 +34,10 @@ mv data/split/equiv_renamed.test data/split/equiv.test
 To train the model for recognizing equivalence (simple bidirectional RNN), run:
 ```
 python3 models/bidir-rnn.py \
-	--train_set data/split/equiv.train
-	--valid_set data/split/equiv.valid
-	--test_set data/split/equiv.test
-	--vocab data/vocab
+	--train_set data/split/equiv.train \
+	--valid_set data/split/equiv.valid \
+	--test_set data/split/equiv.test \
+	--vocab data/vocab \
 	--batch_size 32 \
 	--epochs 32 \
 	--embed_dim 2 \
