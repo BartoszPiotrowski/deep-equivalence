@@ -364,11 +364,3 @@ if __name__ == "__main__":
     model_path = network.save(args.logdir + '/saved_model')
     print('Model saved to: ', model_path)
 
-    # Predict on test set
-    network = NetworkPredict()
-    network.load(model_path)
-    test = data.Dataset(args.test_set, args.vocab, test=True)
-    p = network.predict('test', test)
-    with open('preds_file', 'w') as preds_file:
-        for i in p:
-            print(i, file=preds_file)
