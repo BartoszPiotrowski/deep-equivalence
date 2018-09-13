@@ -338,25 +338,7 @@ if __name__ == "__main__":
 
     # Construct the network
     network = Network(threads=args.threads)
-    t0 = time(); print('AAA', t0)
     network.construct(args, train_set.num_tokens)
-    print(time() - t0)
-
-    # Train
-    #print("Training started.")
-    #for i in range(args.epochs):
-    #    network.train_epoch(train_set, args.batch_size)
-    #    accuracy = network.evaluate('dev', dev_set, args.batch_size)
-    #    print("Accuracy on dev set after epoch {}: {:.2f}".format(
-    #                                        i + 1, 100 * accuracy))
-    #    # Saving embeddings
-    #    embeddings = network.embeddings()
-    #    file_name = args.logdir + '/embeddings_from_epoch_' + str(i) + '.csv'
-    #    embeddings_to_write = '\n'.join(
-    #        [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
-    #    with open(file_name, 'w') as f:
-    #        f.write(embeddings_to_write + '\n')
-    #print("Training finished.")
 
     # Train, batches
     print("Training started.")
