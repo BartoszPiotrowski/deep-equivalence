@@ -2,9 +2,9 @@
 import numpy as np
 import tensorflow as tf
 import sys
+from time import time
 sys.path.append('')
 from utils import dataset as data
-# ~DONE control all shapes
 # DONE check how data set is balanced -> 42% are positives, good enough
 # TODO commas v no commas
 # TODO grid search
@@ -250,7 +250,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--vocab",
-        default='data/vocab.txt',
+        default='data/vocab',
         type=str,
         help="Path to a vocabulary file.")
     parser.add_argument(
@@ -338,10 +338,9 @@ if __name__ == "__main__":
 
     # Construct the network
     network = Network(threads=args.threads)
+    t0 = time(); print('AAA', t0)
     network.construct(args, train_set.num_tokens)
-
-# TODO vacabulary map
-# TODO grid search
+    print(time() - t0)
 
     # Train
     #print("Training started.")
