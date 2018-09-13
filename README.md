@@ -38,10 +38,10 @@ python3 models/bidir-rnn.py \
 	--valid_set data/split/equiv.valid \
 	--test_set data/split/equiv.test \
 	--vocab data/vocab \
-	--batch_size 32 \
+	--batch_size 64 \
 	--epochs 32 \
-	--embed_dim 2 \
+	--embed_dim 4 \
 	--rnn_cell_dim 8 \
-	--num_dense_layers 1 \
+	--num_dense_layers 2 \
 	--dense_layer_units 16
 ```
