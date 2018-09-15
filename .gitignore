@@ -1,6 +1,8 @@
 
 *.csv
 
+*equiv_augmented*
+
 tmp/
 tmp
 logs
