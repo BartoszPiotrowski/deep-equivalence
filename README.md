@@ -1,7 +1,7 @@
 # deep-equivalence
 
 ## Requirements:
-`python3.6` with `tensorflow 10` package installed.
+`Python 3.6` with `Tensorflow 1.10` package installed.
 
 ## Praparation of data for experiments:
 
@@ -64,7 +64,7 @@ python3 models-definitions/bidir_rnn.py \
 	--num_dense_layers 2 \
 	--dense_layer_units 32
 ```
-The accuracy of this model on the validation set should go not higher than `85%`.
+The accuracy of this model on the validation set doesn't go higher than `86%`.
 This means that the model make use of the ordering of variables -- when variables
 in formulae appear in a consistent order, `X, Y, Z, ...`, it makes learning for
 the model easier. This can be considered as a unintended behaviour or a "leak
