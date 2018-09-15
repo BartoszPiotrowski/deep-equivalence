@@ -35,30 +35,30 @@ The implemented machine learning model is a straightforward bidirectional RNN.
 To train it run:
 ```
 mkdir models_pretrained
-python3 models/bidir_rnn.py \
+python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv.valid \
 	--model_path models_pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
-	--epochs 32 \
+	--epochs 64 \
 	--embed_dim 8 \
 	--rnn_cell_dim 16 \
 	--num_dense_layers 2 \
 	--dense_layer_units 32
 ```
-The accuracy of this model on the validation set should go up to `90%--91%`.
+The accuracy of this model on the validation set should go up to `88%--91%`.
 
 Now let's see what happens when variables in training and validation set are
 randomly renamed.
 ```
-python3 models/bidir_rnn.py \
+python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_renamed.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models_pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
-	--epochs 32 \
+	--epochs 64 \
 	--embed_dim 8 \
 	--rnn_cell_dim 16 \
 	--num_dense_layers 2 \
@@ -75,13 +75,13 @@ We can also check what happens when variables in validation set are randomly
 renamed, whereas in the training set variables appear in consistent order across
 the formulae.
 ```
-python3 models/bidir_rnn.py \
+python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models_pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
-	--epochs 32 \
+	--epochs 64 \
 	--embed_dim 8 \
 	--rnn_cell_dim 16 \
 	--num_dense_layers 2 \
@@ -97,13 +97,13 @@ augmenting we see as many as 2853850 examples -- so the training time will be
 roughly 170 times longer.
 
 ```
-python3 models/bidir_rnn.py \
+python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models_pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
-	--epochs 32 \
+	--epochs 64 \
 	--embed_dim 8 \
 	--rnn_cell_dim 16 \
 	--num_dense_layers 2 \
@@ -118,7 +118,7 @@ cat data/split/equiv.test | cut -d ' ' -f2- > data/split/equiv_no_labels.test
 ```
 
 ```
-python3 models/predict.py \
+python3 models-definitions/predict.py \
 	--model models_pretrained/basic_split \
 	--pairs data/split/equiv_no_labels.test
 ```
