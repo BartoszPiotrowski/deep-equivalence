@@ -315,7 +315,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.model_path:
-        logdir = args.model_path
+        args.logdir = args.model_path
     else:
         if not args.logdir:
             # Create dir for logs
@@ -323,7 +323,7 @@ if __name__ == "__main__":
                 os.mkdir("logs")
 
             # Create logdir name
-            logdir = "logs/{}--{}--{}".format(
+            args.logdir = "logs/{}--{}--{}".format(
                 os.path.basename(__file__),
                 datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"),
                 ",".join(
@@ -337,7 +337,7 @@ if __name__ == "__main__":
                 )
             )
 
-    print("The logdir is: {}".format(logdir))
+    print("The logdir is: {}".format(args.logdir))
 
     # Load the data
     train_set = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
@@ -357,7 +357,7 @@ if __name__ == "__main__":
             # Saving embeddings
             #embeddings = network.embeddings()
             #time = datetime.datetime.now().strftime("%H%M%S")
-            #file_name = logdir + '/embeddings_' + time + '.csv'
+            #file_name = args.logdir + '/embeddings_' + time + '.csv'
             #embeddings_to_write = '\n'.join(
             #    [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
             #with open(file_name, 'w') as f:
@@ -368,7 +368,7 @@ if __name__ == "__main__":
     print("Training finished.")
 
     # Save model
-    model_path = network.save(logdir + '/model')
+    model_path = network.save(args.logdir + '/model')
     print('Saved model path: ', model_path)
 
     if args.test_set:
