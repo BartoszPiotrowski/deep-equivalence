@@ -38,7 +38,7 @@ mkdir models-pretrained
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv.valid \
-	--model_path models-pretrained/basic_split \
+	--model_path models-pretrained/basic \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -55,7 +55,7 @@ randomly renamed.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_renamed.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/basic_split \
+	--model_path models-pretrained/renamed-train-and-valid \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -78,7 +78,7 @@ the formulae.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/basic_split \
+	--model_path models-pretrained/renamed-valid \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -100,7 +100,7 @@ roughly 170 times longer.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/basic_split \
+	--model_path models-pretrained/augmented-train \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \

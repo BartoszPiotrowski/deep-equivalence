@@ -314,27 +314,30 @@ if __name__ == "__main__":
         help="Logdir.")
     args = parser.parse_args()
 
-    if not args.logdir:
-        # Create dir for logs
-        if not os.path.exists("logs"):
-            os.mkdir("logs")
+    if args.model_path:
+        logdir = args.model_path
+    else:
+        if not args.logdir:
+            # Create dir for logs
+            if not os.path.exists("logs"):
+                os.mkdir("logs")
 
-        # Create logdir name
-        args.logdir = "logs/{}--{}--{}".format(
-            os.path.basename(__file__),
-            datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"),
-            ",".join(
-                ("{}={}".format(
-                    re.sub("(.)[^_]*_?", r"\1", key), value) \
-                        for key, value in sorted(vars(args).items()) \
-                            if not '/' in str(value) \
-                            and not 'threads' in key
-                            and not 'logdir' in key
+            # Create logdir name
+            logdir = "logs/{}--{}--{}".format(
+                os.path.basename(__file__),
+                datetime.datetime.now().strftime("%Y-%m-%d-%H%M%S"),
+                ",".join(
+                    ("{}={}".format(
+                        re.sub("(.)[^_]*_?", r"\1", key), value) \
+                            for key, value in sorted(vars(args).items()) \
+                                if not '/' in str(value) \
+                                and not 'threads' in key
+                                and not 'logdir' in key
+                    )
                 )
             )
-        )
 
-    print("The logdir is: {}".format(args.logdir))
+    print("The logdir is: {}".format(logdir))
 
     # Load the data
     train_set = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
@@ -352,22 +355,21 @@ if __name__ == "__main__":
             network.train_batch(batch)
 
             # Saving embeddings
-            embeddings = network.embeddings()
-            time = datetime.datetime.now().strftime("%H%M%S")
-            file_name = args.logdir + '/embeddings_' + time + '.csv'
-            embeddings_to_write = '\n'.join(
-                [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
-            with open(file_name, 'w') as f:
-                f.write(embeddings_to_write + '\n')
+            #embeddings = network.embeddings()
+            #time = datetime.datetime.now().strftime("%H%M%S")
+            #file_name = logdir + '/embeddings_' + time + '.csv'
+            #embeddings_to_write = '\n'.join(
+            #    [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
+            #with open(file_name, 'w') as f:
+            #    f.write(embeddings_to_write + '\n')
         accuracy = network.evaluate('valid', valid_set, args.batch_size)
         print("Accuracy on valid set after epoch {}: {:.2f}".format(
                                             i + 1, 100 * accuracy))
     print("Training finished.")
 
     # Save model
-    model_path_0 = args.model_path if args.model_path else args.logdir
-    model_path = network.save(model_path_0 + '/saved_model')
-    print('Model saved to: ', model_path)
+    model_path = network.save(logdir + '/model')
+    print('Saved model path: ', model_path)
 
     if args.test_set:
         network = NetworkPredict()
