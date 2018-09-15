@@ -112,23 +112,22 @@ class Network:
             self.summaries = {}
             with summary_writer.as_default(), \
                     tf.contrib.summary.record_summaries_every_n_global_steps(10):
-                self.summaries["train"] = [
+                self.summaries['train'] = [
                     tf.contrib.summary.scalar(
-                        "train/loss",
+                        'train/loss',
                         self.update_loss),
                     tf.contrib.summary.scalar(
-                        "train/accuracy",
+                        'train/accuracy',
                         self.update_accuracy)]
             with summary_writer.as_default(), \
                     tf.contrib.summary.always_record_summaries():
-                for dataset in ["dev", "test"]:
-                    self.summaries[dataset] = [
-                        tf.contrib.summary.scalar(
-                            dataset + "/loss",
-                            self.current_loss),
-                        tf.contrib.summary.scalar(
-                            dataset + "/accuracy",
-                            self.current_accuracy)]
+                self.summaries['valid'] = [
+                    tf.contrib.summary.scalar(
+                        'valid/loss',
+                        self.current_loss),
+                    tf.contrib.summary.scalar(
+                        'valid/accuracy',
+                        self.current_accuracy)]
 
             # Initialize variables
             self.session.run(tf.global_variables_initializer())
@@ -262,12 +261,17 @@ if __name__ == "__main__":
         "--valid_set",
         default='data/split/equiv.valid',
         type=str,
-        help="Path to a validation (dev) set.")
+        help="Path to a validation set.")
     parser.add_argument(
         "--test_set",
-        default='data/split/equiv.test',
+        default='',
         type=str,
         help="Path to a testing set.")
+    parser.add_argument(
+        "--model_path",
+        default='',
+        type=str,
+        help="Path where to save the trained model.")
     parser.add_argument(
         "--batch_size",
         default=8,
@@ -334,7 +338,7 @@ if __name__ == "__main__":
 
     # Load the data
     train_set = data.Dataset(args.train_set, args.vocab, shuffle_batches=True)
-    dev_set = data.Dataset(args.valid_set, args.vocab, shuffle_batches=False)
+    valid_set = data.Dataset(args.valid_set, args.vocab, shuffle_batches=False)
 
     # Construct the network
     network = Network(threads=args.threads)
@@ -355,22 +359,21 @@ if __name__ == "__main__":
                 [','.join([str(round(j, 6)) for j in i]) for i in embeddings])
             with open(file_name, 'w') as f:
                 f.write(embeddings_to_write + '\n')
-        accuracy = network.evaluate('dev', dev_set, args.batch_size)
-        print("Accuracy on dev set after epoch {}: {:.2f}".format(
+        accuracy = network.evaluate('valid', valid_set, args.batch_size)
+        print("Accuracy on valid set after epoch {}: {:.2f}".format(
                                             i + 1, 100 * accuracy))
     print("Training finished.")
 
     # Save model
-    model_path = network.save(args.logdir + '/saved_model')
+    model_path_0 = args.model_path if args.model_path else args.logdir
+    model_path = network.save(model_path_0 + '/saved_model')
     print('Model saved to: ', model_path)
 
-    network = NetworkPredict()
-    print(model_path)
-    print(args.test_set)
-    print(args.vocab)
-    network.load(model_path)
-    test = data.Dataset(args.test_set, args.vocab, test=True)
-    p = network.predict('test', test)
-    for i in p[:10]:
-        print(i)
+    if args.test_set:
+        network = NetworkPredict()
+        network.load(model_path)
+        test = data.Dataset(args.test_set, args.vocab, test=True)
+        p = network.predict('test', test)
+        for i in p[:10]:
+            print(i)
 
