@@ -86,8 +86,6 @@ if __name__ == "__main__":
     [meta] = [f for f in all_files if '.meta' in f]
     prefix = meta.split('.')[0]
     model_with_prefix = args.model + '/' + prefix
-    print(model_with_prefix)
-
     network = NetworkPredict()
     network.load(model_with_prefix)
     test = Dataset(args.pairs, args.vocab, test=True)
