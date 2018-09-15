@@ -84,18 +84,16 @@ class Network:
                                     args.dense_layer_units,
                                     activation=tf.nn.relu)
                 )
-            logits = tf.layers.dense(layers[-1], self.LABELS, name='logits')
-            self.predictions = tf.argmax(logits, axis=1, name='predictions')
+            self.logits = tf.layers.dense(layers[-1], self.LABELS, name='logits')
+            self.logits = tf.nn.softmax(self.logits)
+            self.logits_0 = self.logits[:0]
+            self.predictions = tf.argmax(self.logits, axis=1, name='predictions')
             #predictions_shape = tf.shape(self.predictions)
             #print('self.predictions shape: ', self.predictions.get_shape())
 
             # Training
-            #labels_shape = tf.shape(self.labels)
-            #print('self.labels shape: ', self.labels.get_shape())
-            #logits_shape = tf.shape(logits)
-            #print('logits shape: ', logits.get_shape())
             loss = tf.losses.sparse_softmax_cross_entropy(
-                self.labels, logits)
+                self.labels, self.logits)
             global_step = tf.train.create_global_step()
             self.training = tf.train.AdamOptimizer().minimize(
                 loss, global_step=global_step, name="training")
@@ -146,6 +144,8 @@ class Network:
                                  self.formulae_lens_2)
             tf.add_to_collection('end_points/predictions',
                                  self.predictions)
+            tf.add_to_collection('end_points/logits',
+                                 self.logits)
 
             self.saver = tf.train.Saver()
 

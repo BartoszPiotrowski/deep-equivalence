@@ -13,14 +13,19 @@ class Dataset:
         self.formulae_2 = []
         self.labels = []
         with open(formulae_filename, 'r') as formulae:
-            for line in formulae:
-                l, f1, f2 = line.strip('\n').split(' ')
-                self.formulae_1.append(f1)
-                self.formulae_2.append(f2)
-                self.labels.append(l)
+            if test:
+                for line in formulae:
+                    f1, f2 = line.strip('\n').split(' ')
+                    self.formulae_1.append(f1)
+                    self.formulae_2.append(f2)
+            else:
+                for line in formulae:
+                    l, f1, f2 = line.strip('\n').split(' ')
+                    self.formulae_1.append(f1)
+                    self.formulae_2.append(f2)
+                    self.labels.append(l)
         with open(vocab_filename, 'r') as vocab:
             self.vocab = vocab.read().splitlines()
-        # TODO investigate the necessity of this + 1
         self.num_tokens = len(self.vocab) + 1  # + 1 because of padding with 0s
         self.vocab_map = {self.vocab[i]: i + 1 for i in range(len(self.vocab))}
         self.seqs_1 = [[self.vocab_map[t] for t in f] for f in self.formulae_1]
@@ -30,8 +35,6 @@ class Dataset:
         self.shuffle_batches = shuffle_batches
         self._permutation = np.random.permutation(len(self)) \
             if self.shuffle_batches else np.arange(len(self))
-        if test:
-            self.labels = []
 
     def __len__(self):
         return len(self.formulae_1)

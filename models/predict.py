@@ -2,7 +2,7 @@
 import tensorflow as tf
 import sys
 sys.path.append('')
-#from models.bidir_rnn import NetworkPredict
+from utils.dataset import Dataset
 
 class NetworkPredict:
     def __init__(self, threads=1, seed=42):
@@ -31,26 +31,33 @@ class NetworkPredict:
                 'end_points/formulae_lens_2')[0]
             self.predictions = tf.get_collection(
                 'end_points/predictions')[0]
+            self.logits = tf.get_collection(
+                'end_points/logits')[0]
 
             # Load the graph weights
             self.saver.restore(self.session, path)
 
-    def predict(self, dataset_name, dataset):
+    def predict(self, dataset, discrete=True):
         tokens_ids_1, formulae_lens_1, \
         tokens_ids_2, formulae_lens_2, \
             = dataset.test()
-        return self.session.run(self.predictions,
-                         {self.formulae_lens_1: formulae_lens_1,
-                          self.tokens_ids_1: tokens_ids_1,
-                          self.formulae_lens_2: formulae_lens_2,
-                          self.tokens_ids_2: tokens_ids_2})
+        if discrete:
+            return self.session.run(self.predictions,
+                             {self.formulae_lens_1: formulae_lens_1,
+                              self.tokens_ids_1: tokens_ids_1,
+                              self.formulae_lens_2: formulae_lens_2,
+                              self.tokens_ids_2: tokens_ids_2})
+        else:
+            return self.session.run(self.logits,
+                             {self.formulae_lens_1: formulae_lens_1,
+                              self.tokens_ids_1: tokens_ids_1,
+                              self.formulae_lens_2: formulae_lens_2,
+                              self.tokens_ids_2: tokens_ids_2})[:,1]
 
 
 if __name__ == "__main__":
     import argparse
-    import datetime
     import os
-    import re
 
 
     parser = argparse.ArgumentParser()
@@ -68,14 +75,22 @@ if __name__ == "__main__":
         default='data/vocab',
         type=str,
         help="Path to a vocabulary file.")
+    parser.add_argument(
+        '--discrete',
+        action='store_true',
+        help="By default the model returns probabilities; setting this flag \
+            causes returning 0s and 1s.")
     args = parser.parse_args()
 
+    all_files = os.listdir(args.model)
+    [meta] = [f for f in all_files if '.meta' in f]
+    prefix = meta.split('.')[0]
+    model_with_prefix = args.model + '/' + prefix
+    print(model_with_prefix)
+
     network = NetworkPredict()
-    print(args.model)
-    print(args.pairs)
-    print(args.vocab)
-    network.load(args.model)
-    test = data.Dataset(args.pairs, args.vocab, test=True)
-    p = network.predict('test', test)
+    network.load(model_with_prefix)
+    test = Dataset(args.pairs, args.vocab, test=True)
+    p = network.predict(test, args.discrete)
     for i in p:
         print(i)

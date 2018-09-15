@@ -93,8 +93,9 @@ unnapplicable on the validation.
 
 Finally, let's train the model on training data augmented by all possible
 renamings of variables. Original training set has 16937 examples whereas after
-augmenting we see as many as 2853850 examples. Therefore let's increase number
-of training epoch from 32 to 128.
+augmenting we see as many as 2853850 examples -- so the training time will be
+roughly 170 times longer.
+
 ```
 python3 models/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
@@ -113,5 +114,11 @@ python3 models/bidir_rnn.py \
 ## Quering a trained model
 
 ```
-python3 models/predict.py --model ... --pairs data/split/equiv_no_labels.test
+cat data/split/equiv.test | cut -d ' ' -f2- > data/split/equiv_no_labels.test
+```
+
+```
+python3 models/predict.py \
+	--model trained_models/basic_split \
+	--pairs data/split/equiv_no_labels.test
 ```
