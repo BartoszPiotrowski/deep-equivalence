@@ -34,11 +34,11 @@ python3 utils/rename.py data/split/equiv.test --variables 'XYZUW' > \
 The implemented machine learning model is a straightforward bidirectional RNN.
 To train it run:
 ```
-mkdir models_pretrained
+mkdir models-pretrained
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv.valid \
-	--model_path models_pretrained/basic_split \
+	--model_path models-pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -55,7 +55,7 @@ randomly renamed.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_renamed.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models_pretrained/basic_split \
+	--model_path models-pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -78,7 +78,7 @@ the formulae.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models_pretrained/basic_split \
+	--model_path models-pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -100,7 +100,7 @@ roughly 170 times longer.
 python3 models-definitions/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models_pretrained/basic_split \
+	--model_path models-pretrained/basic_split \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -119,6 +119,6 @@ cat data/split/equiv.test | cut -d ' ' -f2- > data/split/equiv_no_labels.test
 
 ```
 python3 models-definitions/predict.py \
-	--model models_pretrained/basic_split \
+	--model models-pretrained/basic_split \
 	--pairs data/split/equiv_no_labels.test
 ```
