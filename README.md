@@ -1,7 +1,9 @@
 # deep-equivalence
 
 ## Requirements:
-`Python 3.6` with `Tensorflow 1.10` package installed.
+`Python 3.6.6` with `Tensorflow 1.10` package installed. If you have other
+versions, please, follow the instructions in `installation.txt` -- otherwise
+something may not work properly.
 
 ## Praparation of data for experiments:
 
