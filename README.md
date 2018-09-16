@@ -7,10 +7,10 @@ versions, please, follow the instructions in `installation.txt` -- otherwise
 something may not work properly.
 
 **The repo contains 4 pretrained models you can query -- see the last section.
-If you want to reproduce the preparation of training data and training the models
--- follow the next two sections.**
+If you want to reproduce the preparation of the training data and training of
+the models -- follow the next two sections.**
 
-## Praparation of data for experiments:
+## Praparation of data for experiments
 
 File `data/from-Chad/quadsforaim.p` contains data as received from Chad. In order
 to preprocess them to the form appropriate for experiments do the following:
