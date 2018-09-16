@@ -92,7 +92,7 @@ information coming from consistent ordering of variables, but this was
 unnapplicable on the validation.
 
 In the picture below we see training stats of the above 3 models:
-![Training stats](tensordboard1.png)
+![Training stats 1](tensordboard1.png?raw=true)
 
 Finally, let's train the model on training data augmented by all possible
 renamings of variables. Original training set has 16937 examples whereas after
@@ -114,7 +114,7 @@ python3 models-definitions/bidir_rnn.py \
 ```
 
 In the picture below we see training stats of this model:
-![Training stats](tensordboard2.png)
+![Training stats 2](tensordboard2.png?raw=true)
 
 
 ## Quering a trained model
