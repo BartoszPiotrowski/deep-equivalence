@@ -1,9 +1,14 @@
 # deep-equivalence
 
 ## Requirements:
+
 `Python 3.6.6` with `Tensorflow 1.10` package installed. If you have other
 versions, please, follow the instructions in `installation.txt` -- otherwise
 something may not work properly.
+
+*The repo contains 4 pretrained models you can query -- see the last section.
+If you want to reproduce the preparation of training data and training the models
+-- follow the next two sections.*
 
 ## Praparation of data for experiments:
 
@@ -122,6 +127,7 @@ In the picture below we see training stats of this model:
 
 
 ## Quering a trained model
+
 Having trained some models we can query them with some new pairs of formulae.
 For example, let's create a file with such paris by removing labels from
 `data/split/equiv.test`.
