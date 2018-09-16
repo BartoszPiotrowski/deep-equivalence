@@ -119,6 +119,6 @@ cat data/split/equiv.test | cut -d ' ' -f2- > data/split/equiv_no_labels.test
 
 ```
 python3 models-definitions/predict.py \
-	--model models-pretrained/basic_split \
+	--model models-pretrained/basic \
 	--pairs data/split/equiv_no_labels.test
 ```
