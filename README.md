@@ -91,6 +91,9 @@ Accuracy is `< 77%`. This means that model is deceived -- it learned to use the
 information coming from consistent ordering of variables, but this was
 unnapplicable on the validation.
 
+In the picture below we see training stats of the above 3 models:
+![Training stats](tensordboard1.png)
+
 Finally, let's train the model on training data augmented by all possible
 renamings of variables. Original training set has 16937 examples whereas after
 augmenting we see as many as 2853850 examples -- so the training time will be
@@ -109,6 +112,9 @@ python3 models-definitions/bidir_rnn.py \
 	--num_dense_layers 2 \
 	--dense_layer_units 32
 ```
+
+In the picture below we see training stats of this model:
+![Training stats](tensordboard2.png)
 
 
 ## Quering a trained model
