@@ -8,7 +8,7 @@ versions, please, follow the instructions in
 
 
 **The repo contains 4 pretrained models (in
-[models-pretrained](models-pretrained/)) you can query -- see the last section.
+[models-pretrained/](models-pretrained/)) you can query -- see the last section.
 If you want to reproduce the preparation of the training data and training of
 the models -- follow the next two sections.**
 
