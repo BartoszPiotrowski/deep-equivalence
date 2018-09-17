@@ -3,13 +3,13 @@
 ## Requirements
 
 `Python 3.6.6` with `Tensorflow 1.10` package installed. If you have other
-versions, please, follow the instructions in `installation.md` -- otherwise
-something may not work properly.
+versions, please, follow the instructions in
+[installation.md](installation.md) -- otherwise something may not work properly.
 
 
-**The repo contains 4 pretrained models you can query -- see the last section.
-If you want to reproduce the preparation of the training data and training of
-the models -- follow the next two sections.**
+**The repo contains 4 pretrained models (in `/models-pretrained/`) you can query
+-- see the last section. If you want to reproduce the preparation of the
+training data and training of the models -- follow the next two sections.**
 
 
 ## Praparation of data for experiments
