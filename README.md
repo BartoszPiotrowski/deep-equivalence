@@ -105,7 +105,7 @@ unnapplicable on the validation.
 
 In the picture below we see training stats of the above 3 models:
 
-![Training stats 1](tensorboard1.png?raw=true)
+![Training stats 1](pictures/tensorboard1.png?raw=true)
 
 
 Finally, let's train the model on training data augmented by all possible
@@ -129,23 +129,17 @@ python3 models-definitions/bidir_rnn.py \
 
 In the picture below we see training stats of this model:
 
-![Training stats 2](tensorboard2.png?raw=true)
+![Training stats 2](pictures/tensorboard2.png?raw=true)
 
 
 ## Quering the trained models
 
 Having trained some models we can query them with some new pairs of formulae.
-For example, let's create a file with such paris by removing labels from
-`data/split/equiv.test`.
+Let's choose one of the models from `models-pretrained/` and do prediction:
 ```
-cat data/split/equiv.test | cut -d ' ' -f2- > data/split/equiv_no_labels.test
-```
-
-Now let's choose one of the models from `models-pretrained/` and do prediction:
-```
-python3 models-definitions/predict.py \
+python3 utils/predict.py \
 	--model models-pretrained/basic \
-	--pairs data/split/equiv_no_labels.test
+	--pairs models-pretrained/data/split/equiv_no_labels.test
 ```
 
 Each number is a probability of the pair being equivalent, according to the model.
