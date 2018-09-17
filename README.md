@@ -7,7 +7,7 @@ versions, please, follow the instructions in
 [installation.md](installation.md) -- otherwise something may not work properly.
 
 
-**The repo contains 4 pretrained models (in
+**The repo contains 3 pretrained models (in
 [models-pretrained/](models-pretrained/)) you can query -- see the last section.
 If you want to reproduce the preparation of the training data and training of
 the models -- follow the next two sections.**
@@ -135,10 +135,10 @@ In the picture below we see training stats of this model:
 ## Quering the trained models
 
 Having trained some models we can query them with some new pairs of formulae.
-Let's choose one of the models from `models-pretrained/` and do prediction:
+Let's choose one of the models from `models-pretrained/models` and do prediction:
 ```
 python3 utils/predict.py \
-	--model models-pretrained/basic \
+	--model models-pretrained/models/basic \
 	--pairs models-pretrained/data/split/equiv_no_labels.test
 ```
 
