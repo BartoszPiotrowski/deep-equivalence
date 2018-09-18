@@ -17,7 +17,7 @@ the models -- follow the next two sections.**
 
 File `data/from_Chad/quadsforaim.p` contains data as received from Chad. In order
 to preprocess them to the form appropriate for the experiments do the following:
-1. Run `python3 utils/prepare_data.py data/form_Chad/quadsforaim.p > data/equiv`
+1. Run `python3 utils/prepare_data.py data/from_Chad/quadsforaim.p > data/equiv`
 2. Run `python3 utils/split.py data/equiv --train 0.5 --valid 0.3 --test 0.2`
 3. Move split data to its place: `mkdir data/split; mv data/equiv.* data/split`
 
