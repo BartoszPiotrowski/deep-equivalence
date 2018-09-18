@@ -47,7 +47,7 @@ with GRU cells. To train it run:
 mkdir models-pretrained
 ```
 ```
-python3 models-definitions/bidir_rnn.py \
+python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv.valid \
 	--model_path models-pretrained/basic \
@@ -64,7 +64,7 @@ The accuracy of this model on the validation set should go up to `88%--91%`.
 Now let's see what happens when variables in training and validation set are
 randomly renamed.
 ```
-python3 models-definitions/bidir_rnn.py \
+python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv_renamed.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models-pretrained/renamed-train-and-valid \
@@ -87,7 +87,7 @@ We can also check what happens when variables in validation set are randomly
 renamed, whereas in the training set variables appear in consistent order across
 the formulae.
 ```
-python3 models-definitions/bidir_rnn.py \
+python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models-pretrained/renamed-valid \
@@ -114,7 +114,7 @@ augmenting we see as many as 2853850 examples -- so the training time will be
 roughly 170 times longer.
 
 ```
-python3 models-definitions/bidir_rnn.py \
+python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
 	--valid_set data/split/equiv_renamed.valid \
 	--model_path models-pretrained/augmented-train \
