@@ -8,16 +8,16 @@ versions, please, follow the instructions in
 
 
 **The repo contains 3 pretrained models (in
-[models-pretrained/](models-pretrained/)) you can query -- see the last section.
+[models_pretrained/](models_pretrained/)) you can query -- see the last section.
 If you want to reproduce the preparation of the training data and training of
 the models -- follow the next two sections.**
 
 
 ## Praparation of data for experiments
 
-File `data/from-Chad/quadsforaim.p` contains data as received from Chad. In order
+File `data/from_Chad/quadsforaim.p` contains data as received from Chad. In order
 to preprocess them to the form appropriate for the experiments do the following:
-1. Run `python3 utils/prepare-data.py data/from-Chad/quadsforaim.p > data/equiv`
+1. Run `python3 utils/prepare_data.py data/form_Chad/quadsforaim.p > data/equiv`
 2. Run `python3 utils/split.py data/equiv --train 0.5 --valid 0.3 --test 0.2`
 3. Move split data to its place: `mkdir data/split; mv data/equiv.* data/split`
 
@@ -44,13 +44,13 @@ python3 utils/rename.py data/split/equiv.test --variables 'XYZUW' > \
 The implemented machine learning model is a straightforward bidirectional RNN
 with GRU cells. To train it run:
 ```
-mkdir models-pretrained
+mkdir models_pretrained
 ```
 ```
 python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv.valid \
-	--model_path models-pretrained/basic \
+	--model_path models_pretrained/basic \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -67,7 +67,7 @@ randomly renamed.
 python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv_renamed.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/renamed-train-and-valid \
+	--model_path models_pretrained/renamed_train_and_valid \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -90,7 +90,7 @@ the formulae.
 python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/renamed-valid \
+	--model_path models_pretrained/renamed_valid \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -117,7 +117,7 @@ roughly 170 times longer.
 python3 models_definitions/bidir_rnn.py \
 	--train_set data/split/equiv_augmented.train \
 	--valid_set data/split/equiv_renamed.valid \
-	--model_path models-pretrained/augmented-train \
+	--model_path models_pretrained/augmented_train \
 	--vocab data/vocab \
 	--batch_size 128 \
 	--epochs 64 \
@@ -135,11 +135,11 @@ In the picture below we see training stats of this model:
 ## Quering the trained models
 
 Having trained some models we can query them with some new pairs of formulae.
-Let's choose one of the models from `models-pretrained/models` and do prediction:
+Let's choose one of the models from `models_pretrained/models` and do prediction:
 ```
 python3 utils/predict.py \
-	--model models-pretrained/models/basic \
-	--pairs models-pretrained/data/split/equiv_no_labels.test
+	--model models_pretrained/models/basic \
+	--pairs models_pretrained/data/split/equiv_no_labels.test
 ```
 
 Each number is a probability of the pair being equivalent, according to the model.
