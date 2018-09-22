@@ -41,6 +41,8 @@ python3 utils/rename.py data/split/equiv.test --variables 'XYZUW' > \
 
 ## Training a model
 
+### Bidirectional RNN
+
 The implemented machine learning model is a straightforward bidirectional RNN
 with GRU cells. To train it run:
 ```
@@ -130,6 +132,16 @@ python3 models_definitions/bidir_rnn.py \
 In the picture below we see training stats of this model:
 
 ![Training stats 2](pictures/tensorboard2.png?raw=true)
+
+### TreeNN
+
+```
+python3 models_definitions/tree_nn.py \
+	--train_set data/split/equiv.train \
+	--valid_set data/split/equiv.valid \
+	--functs_with_arits data/split/functs_with_arits \
+	--vars_consts data/split/vars_consts
+```
 
 
 ## Quering the trained models

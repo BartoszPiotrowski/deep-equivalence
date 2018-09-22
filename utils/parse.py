@@ -20,8 +20,3 @@ def parse(formula):
         args.append(args_raw)
     return [predicate, [parse(a) for a in args]]
 
-# Test:
-#print(parse('k(X,t(t(b(o(X,Y),Z),o(Y,X)),U))'))
-#print(parse('b(t(X,t(Y,Z)),Y)'))
-#print(parse('b(Y,o(X,Z))'))
-

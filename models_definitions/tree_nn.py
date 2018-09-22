@@ -1,11 +1,6 @@
 import torch
-import random
-import argparse
 import sys
 sys.path.append('.')
-from utils.parse import parse
-from utils.tools import one_hot
-from utils.dataset import DatasetTreeNN
 
 
 class FunctionNetwork(torch.nn.Module):
@@ -43,8 +38,8 @@ class EqualityNetwork(torch.nn.Module):
         self.model = torch.nn.Sequential(
             torch.nn.Linear(2 * dim_in, dim_h),
             torch.nn.ReLU(),
-            torch.nn.Linear(dim_h, 1),
-            # TODO add sigmoid
+            torch.nn.Linear(dim_h, 2),
+            # TODO maybe better 1 and sigmoid; but not with CrossEntropyLoss()
         )
 
     def forward(self, x): # TODO this repeats; make a super-class
@@ -54,26 +49,30 @@ class EqualityNetwork(torch.nn.Module):
 class TreeNN:
     def __init__(
         self,
-        functs_with_arits,
-        vars_consts_as_tensors,
-        loss=torch.nn.CrossEntropyLoss(),
-        optimizer=torch.optim.SGD(params_of_modules, lr=0.001, momentum=0.8)):
+        vocab,
+        optimizer='SGD',
+        learning_rate=0.001,
+        momentum=0.8,
+        loss=torch.nn.CrossEntropyLoss()
+    ):
         # TODO add parameter for controlling layer size
 
-        self.functs_with_arits = functs_with_arits
-        self.vars_consts_as_tensors = vars_consts_as_tensors
-        self.n_vars_consts = len(vars_consts_as_tensors)
+        self.functs_with_arits = vocab.functs_with_arits
+        self.vars_consts_as_torch_tensors = vocab.vars_consts_as_torch_tensors
+        self.n_vars_consts = len(self.vars_consts_as_torch_tensors)
 
         # instantiate modules for all function symbols
         self.modules = {}
-        # TODO add parameter for controlling layer size
-        for func in self.functs_with_arits:
-            modules[func] =  FunctionNetwork(func, self.functs_with_arits[func])
-        modules['VARCONST'] = VarConstNetwork(dim_in=self.n_vars_consts)
-        modules['EQUALITY'] = EqualityNetwork()
+        for fun in self.functs_with_arits:
+            self.modules[fun] = FunctionNetwork(fun, self.functs_with_arits[fun])
+        self.modules['VARCONST'] = VarConstNetwork(dim_in=self.n_vars_consts)
+        self.modules['EQUALITY'] = EqualityNetwork()
         self.loss = loss
-        self.optimizer = optimizer
-        return modules
+        if optimizer == 'SGD':
+            self.optimizer = torch.optim.SGD(
+                self.parameters(),
+                lr=learning_rate,
+                momentum=momentum)
 
 
     def parameters(self):
@@ -86,22 +85,20 @@ class TreeNN:
     def tree(self, term):
         if len(term) > 1:
             x = torch.cat([self.tree(t) for t in term[1]], -1)
-            return modules[term[0]](x)
+            return self.modules[term[0]](x)
         else:
-            return modules['VARCONST'](self.vars_consts_as_tensors[term[0]])
+            return self.modules['VARCONST'](
+                self.vars_consts_as_torch_tensors[term[0]])
 
 
-    def forward(self, example):
-        term_L, term_R = example
+    def forward(self, term_L, term_R):
         return self.modules['EQUALITY'](torch.cat(
-            self.tree(term_L, self.modules, self.vars_consts_as_tensors),
-            self.tree(term_R, self.modules, self.vars_consts_as_tensors),
-            -1))
+            [self.tree(term_L), self.tree(term_R)], -1))
 
 
     def train_one_example(self, example_with_label):
-        label, example = example_with_label
-        pred = self.forward(example)
+        label, term_L, term_R = example_with_label
+        pred = self.forward(term_L, term_R)
         loss = self.loss(pred, label)
         self.optimizer.zero_grad()
         loss.backward()
@@ -109,89 +106,93 @@ class TreeNN:
         return loss.item(), pred.argmax().item()
 
 
-    def train(self, examples, epochs=10, verbose=True): # examples with labels
-        for e in range(epochs):
+    def train(self, train_set, epochs=10, verbose=True):
+        for epoch in range(epochs):
             losses = []
             preds = []
-            for example in examples:
-                loss, pred = self.forward(example)
+            for example in train_set:
+                loss, pred = self.train_one_example(example)
                 losses.append(loss)
                 preds.append(pred)
-            N = len(examples)
-            labels = [e[0].item() for e in examples]
+            N = len(train_set)
+            labels = [e[0].item() for e in train_set]
             loss_avg = sum(losses) / N
             accuracy = sum(preds[i] == labels[i] for i in range(N)) / N
             if verbose:
-                print("Loss on training {}. Accuracy on training {}.".format(
-                    loss_avg, accuracy))
+                print("Epoch: {} Loss: {} Accuracy: {}.".format(
+                    epoch, loss_avg, accuracy))
 
 
-    def predict(inputs, model):
-        return [model(i).argmax().item() for i in inputs]
+    def predict(self, examples):
+        return [self.forward(e).argmax().item() for e in examples]
 
 
 
-############ TEST ###############################################
+if __name__ == "__main__":
+    import argparse
+    import random
+    from utils.dataset import DatasetTreeNN, VocabTreeNN
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--train_set",
-    type=str,
-    help="Path to a training set.")
-parser.add_argument(
-    "--valid_set",
-    type=str,
-    help="Path to a validation set.")
-parser.add_argument(
-    "--test_set",
-    default='',
-    type=str,
-    help="Path to a testing set.")
-parser.add_argument(
-    "--model_path",
-    default='',
-    type=str,
-    help="Path where to save the trained model.")
-parser.add_argument(
-    "--epochs",
-    default=10,
-    type=int,
-    help="Number of epochs.")
-parser.add_argument(
-    "--embed_dim",
-    default=8,
-    type=int,
-    help="Token embedding dimension.")
-parser.add_argument(
-    "--threads",
-    default=1,
-    type=int,
-    help="Maximum number of threads to use.")
-parser.add_argument(
-    "--logdir",
-    default='',
-    type=str,
-    help="Logdir.")
-args = parser.parse_args()
+    random.seed(541)
+    torch.random.manual_seed(541)
 
 
-SYMBOLS_WITH_ARITIES = {
-    '+': 2,
-    '-': 2
-}
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--train_set",
+        type=str,
+        help="Path to a training set.")
+    parser.add_argument(
+        "--valid_set",
+        type=str,
+        help="Path to a validation set.")
+    parser.add_argument(
+        "--test_set",
+        default='',
+        type=str,
+        help="Path to a testing set.")
+    parser.add_argument(
+        "--functs_with_arits",
+        type=str,
+        help="Path to the file with function symbols and its arities.")
+    parser.add_argument(
+        "--vars_consts",
+        type=str,
+        help="Path to the file with constants and variables.")
+    parser.add_argument(
+        "--model_path",
+        default='',
+        type=str,
+        help="Path where to save the trained model.")
+    parser.add_argument(
+        "--epochs",
+        default=10,
+        type=int,
+        help="Number of epochs.")
+    parser.add_argument(
+        "--threads",
+        default=1,
+        type=int,
+        help="Maximum number of threads to use.")
+    parser.add_argument(
+        "--logdir",
+        default='',
+        type=str,
+        help="Logdir.")
+    args = parser.parse_args()
 
-labels_train, inputs_train = load_data(args.train_set)
-labels_valid, inputs_valid = load_data(args.valid_set)
-modulo = max(i.item() for i in labels_train + labels_valid) + 1
-numbers = set(''.join(inputs_train + inputs_valid)) - set(SYMBOLS_WITH_ARITIES)
-consts_as_tensors = consts_to_tensors(numbers)
-modules = instanciate_modules(SYMBOLS_WITH_ARITIES, len(numbers), modulo)
-params_of_modules = parameters_of_modules(modules)
-loss_1 = loss
-optim_1 = torch.optim.SGD(params_of_modules, lr=0.001, momentum=0.7)
-for e in range(args.epochs):
-    train(inputs_train, labels_train, modules, loss_1, optim_1)
-    acc = accuracy(inputs_valid, labels_valid, modules)
-    print("Epoch: {}. Accuracy on validation: {}".format(e, acc))
+    train_set = DatasetTreeNN(args.train_set)
+    valid_set = DatasetTreeNN(args.valid_set)
+    vocab = VocabTreeNN(args.functs_with_arits, args.vars_consts)
+    net = TreeNN(vocab)
+
+###### TEST ########################################################
+    e = list(train_set)[0]
+    print(e)
+    print(net.forward(e[1], e[2]))
+    print(net.loss(net.forward(e[2], e[1]), torch.tensor([1])))
+    net.train_one_example(e)
+    net.train(train_set)
+
 

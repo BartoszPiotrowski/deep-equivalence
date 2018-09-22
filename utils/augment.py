@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-# usage: python3 utils/augment.py data/equiv.train --variables 'XYZUW' --reverse
 import argparse, random
 import itertools
 import re
+'''
+usage: python3 utils/augment.py data/equiv.train --variables 'XYZUW' --reverse
+'''
 
 def variables(formula):
     '''

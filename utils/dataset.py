@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 import numpy as np
 import torch
+from utils.tools import one_hot
+from utils.parse import parse
 
 
-class Dataset: # TODO rename it to DatasetRNN and make superclass Dataset
+class Dataset:  # TODO rename it to DatasetRNN and make superclass Dataset
     def __init__(self,
-                terms_filename,  # TODO remove commas?
-                vocab_filename,
-                shuffle=True,
-                test=False):
+                 terms_filename,  # TODO remove commas?
+                 vocab_filename,
+                 shuffle=True,
+                 test=False):
         self.terms_L = []
         self.terms_R = []
         self.labels = []
@@ -76,13 +78,13 @@ class Dataset: # TODO rename it to DatasetRNN and make superclass Dataset
 
 class DatasetTreeNN:
     def __init__(self,
-                terms_filename,  # TODO remove commas?
-                functs_with_arits_filename,
-                consts_vars_filename,
-                shuffle=True,
-                torch=True,
-                predict_mode=False):
+                 terms_filename,
+                 shuffle=True,
+                 for_torch=True,
+                 predict_mode=False):
 
+        self.terms_L_not_parsed = []
+        self.terms_R_not_parsed = []
         self.terms_L = []
         self.terms_R = []
         self.labels = []
@@ -91,46 +93,61 @@ class DatasetTreeNN:
             if predict_mode:
                 for line in terms:
                     t1, t2 = line.strip('\n').split(' ')
-                    self.terms_L.append(t1)
-                    self.terms_R.append(t2)
+                    self.terms_L_not_parsed.append(t1)
+                    self.terms_R_not_parsed.append(t2)
+                    self.terms_L.append(parse(t1))
+                    self.terms_R.append(parse(t2))
             else:
                 for line in terms:
                     l, t1, t2 = line.strip('\n').split(' ')
-                    self.terms_L.append(t1)
-                    self.terms_R.append(t2)
-                    if torch:
-                        self.labels.append(torch.tensor([int(label)]))
+                    self.terms_L_not_parsed.append(t1)
+                    self.terms_R_not_parsed.append(t2)
+                    self.terms_L.append(parse(t1))
+                    self.terms_R.append(parse(t2))
+                    if for_torch:
+                        self.labels.append(torch.tensor([int(l)]))
                     else:
                         self.labels.append(l)
-
-        with open(functs_with_arits_filename, 'r') as f:
-            lines = f.read().splitlines()
-            self.functs_with_arits = \
-                dict((f_a.split(' ')[0], int(f_a.split(' ')[1])) for f_a in lines)
-        with open(consts_vars_filename, 'r') as f:
-            self.vars_consts = f.read().splitlines()
 
         self.shuffle = shuffle
         self._permutation = np.random.permutation(len(self)) \
             if self.shuffle else np.arange(len(self))
-        self._current_index = 0 # TODO do it in Pythonic way
-
+        self._current_index = 0  # TODO do it in Pythonic way
 
     def __len__(self):
         return len(self.terms_L)
 
-
     def __iter__(self):
         return self
 
-
-    def __next__(self): # TODO do it in Pythonic way
+    def __next__(self):  # TODO do it in Pythonic way
         if self._current_index >= len(self):
             if self.shuffle:
                 self._permutation = np.random.permutation(len(self))
+            self._current_index = 0
             raise StopIteration
         else:
             i = self._permutation[self._current_index]
             self._current_index += 1
             return self.labels[i], self.terms_L[i], self.terms_R[i]
 
+
+class VocabTreeNN:
+    def __init__(
+        self,
+        functs_with_arits_filename,
+        consts_vars_filename,
+        for_torch=True):
+
+        with open(functs_with_arits_filename, 'r') as f:
+            lines = f.read().splitlines()
+            self.functs_with_arits = dict(
+                (f_a.split(' ')[0], int(f_a.split(' ')[1])) for f_a in lines)
+
+        with open(consts_vars_filename, 'r') as f:
+            self.vars_consts = f.read().splitlines()
+
+        if for_torch:
+            self.vars_consts_as_torch_tensors = \
+                {v: torch.tensor([one_hot(v, self.vars_consts)],
+                                 dtype=torch.float) for v in self.vars_consts}

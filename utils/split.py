@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
-# usage: python3 utils/split.py data/equiv --train 0.5 --valid 0.2 --test 0.3
 import argparse, random
+'''
+usage: python3 utils/split.py data/equiv --train 0.5 --valid 0.2 --test 0.3
+'''
 
 parser = argparse.ArgumentParser(
     description="Split file with training examples into three balanced.")
