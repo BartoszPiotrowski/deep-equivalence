@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import numpy as np
+import torch
 
 
 class Dataset: # TODO rename it to DatasetRNN and make superclass Dataset
@@ -79,6 +80,7 @@ class DatasetTreeNN:
                 functs_with_arits_filename,
                 consts_vars_filename,
                 shuffle=True,
+                torch=True,
                 predict_mode=False):
 
         self.terms_L = []
@@ -96,7 +98,10 @@ class DatasetTreeNN:
                     l, t1, t2 = line.strip('\n').split(' ')
                     self.terms_L.append(t1)
                     self.terms_R.append(t2)
-                    self.labels.append(l)
+                    if torch:
+                        self.labels.append(torch.tensor([int(label)]))
+                    else:
+                        self.labels.append(l)
 
         with open(functs_with_arits_filename, 'r') as f:
             lines = f.read().splitlines()
